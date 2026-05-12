@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DeKoder Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--panel:#141414;--red:#D31122;--redd:#9e0c19;--white:#fff;--gray:#888;--border:#2a2a2a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Barlow Condensed',sans-serif;background:var(--bg);color:var(--white);min-height:100vh}
+.studio-header{background:var(--panel);border-bottom:2px solid var(--red);padding:14px 24px;display:flex;align-items:center;gap:14px}
+.studio-header img{width:44px;height:44px;border-radius:50%;border:2px solid var(--red); object-fit: cover; background: #fff;}
+.brand{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px}
+.brand span{color:var(--red)}
+
+.content-wrapper{display:flex;flex-wrap:wrap;gap:20px;padding:20px;justify-content:center}
+.controls{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:22px;width:100%;max-width:390px}
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--red);margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:8px}
+label{display:block;margin-top:14px;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gray)}
+input[type=file],textarea,select,input[type=text]{width:100%;padding:10px 12px;margin-top:6px;background:#1e1e1e;border:1px solid var(--border);border-radius:6px;color:var(--white);font-family:'Barlow Condensed',sans-serif;font-size:15px}
+textarea{resize:vertical;height:90px}
+.btn-primary{margin-top:22px;width:100%;padding:14px;background:var(--red);color:#fff;border:none;border-radius:6px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;cursor:pointer;transition:background .2s}
+.btn-primary:hover{background:var(--redd)}
+
+.canvas-wrapper{width:100%;max-width:520px;border-radius:8px;box-shadow:0 0 40px rgba(211,17,34,.15);overflow:hidden;font-size:0;}
+#newsCanvas{width:100%;height:auto;display:block;}
+
+@media(max-width:600px){.controls{max-width:100%}}
+</style>
+</head>
+<body>
+
+<header class="studio-header">
+  <img id="hLogo" src="image/logo.png" alt="DK" onerror="this.src='';this.style.display='none';">
+  <div class="brand">De<span>K</span>oder <span style="color:#444;font-size:16px;letter-spacing:1px">STUDIO</span></div>
+</header>
+
+<div class="content-wrapper">
+  <div class="controls">
+    <div class="section-title">Post Settings</div>
+    <label>Post Type</label>
+    <select id="postType" onchange="toggleUI()">
+      <option value="headline">Cover (With Headline)</option>
+      <option value="imageOnly">Content (Logo & Socials Only)</option>
+    </select>
+    <label>Background Image</label>
+    <input type="file" id="imageUpload" accept="image/*" onchange="handleImageUpload(event)">
+    <div id="headlineBlock">
+      <label>Headline Text</label>
+      <textarea id="headline" oninput="drawCanvas()">Yahan apni breaking news ya headline type karein...</textarea>
+    </div>
+    <button class="btn-primary" onclick="downloadImage()">⬇ Download Post</button>
+  </div>
+  <div style="display:flex;align-items:flex-start;justify-content:center;width:100%;max-width:520px">
+    <!-- Canvas is STRICTLY fixed to 1080x1350 (4:5 Portrait) -->
+    <div class="canvas-wrapper"><canvas id="newsCanvas" width="1080" height="1350"></canvas></div>
+  </div>
+</div>
+
+<script>
+// ── LOGO ──────────────────────────────────
+const LOGO = "image/logo.png";
+const logoImg = new Image();
+logoImg.src = LOGO;
+
+logoImg.onerror = () => { drawCanvas(); };
+logoImg.onload = () => { drawCanvas(); };
+
+// ── POST ──────────────────────────────────
+const canvas = document.getElementById('newsCanvas');
+const ctx = canvas.getContext('2d');
+let bgImage = null;
+
+function toggleUI(){
+  const t = document.getElementById('postType').value;
+  document.getElementById('headlineBlock').style.display = t==='imageOnly'?'none':'block';
+  drawCanvas();
+}
+
+function handleImageUpload(e){
+  const f = e.target.files[0]; 
+  if(!f) return;
+  const r = new FileReader();
+  r.onload = ev => { 
+    bgImage = new Image(); 
+    bgImage.onload = () => {
+      // Canvas resolution is NOT changed here. It stays 1080x1350.
+      drawCanvas(); 
+    };
+    bgImage.src = ev.target.result; 
+  };
+  r.readAsDataURL(f);
+}
+
+function wrapLines(c, text, maxW, font){
+  c.font = font;
+  const words = text.split(' '), lines = []; let line = '';
+  for(let i=0;i<words.length;i++){
+    const t = line + words[i] + ' ';
+    if(c.measureText(t).width > maxW && i>0){ lines.push(line.trim()); line = words[i]+' '; }
+    else line = t;
+  }
+  if(line.trim()) lines.push(line.trim());
+  return lines;
+}
+
+function autoSize(c, text, maxW, maxH, max, min, ratio){
+  for(let s=max; s>=min; s-=2){
+    const lines = wrapLines(c, text, maxW, `bold ${s}px 'Bebas Neue',Arial`);
+    if(lines.length * s * ratio <= maxH) return s;
+  }
+  return min;
+}
+
+function drawLogo(c, x, y, size, strokeW=4){
+  const r = size/2;
+  c.save(); c.beginPath(); c.arc(x+r,y+r,r,0,Math.PI*2); c.closePath(); c.clip();
+  if(logoImg.complete && logoImg.naturalWidth){
+    const sc = Math.max(size/logoImg.width, size/logoImg.height);
+    c.drawImage(logoImg, x+r-(logoImg.width/2)*sc, y+r-(logoImg.height/2)*sc, logoImg.width*sc, logoImg.height*sc);
+  } else { c.fillStyle='#D31122'; c.fillRect(x,y,size,size); }
+  c.restore();
+  c.beginPath(); c.arc(x+r,y+r,r,0,Math.PI*2);
+  c.lineWidth=strokeW; c.strokeStyle='#fff'; c.stroke();
+}
+
+function drawCanvas(){
+  const type = document.getElementById('postType').value;
+  const headline = document.getElementById('headline').value;
+  const W = canvas.width, H = canvas.height;
+  const S = W / 1080; // Scale factor relative to 1080 width baseline
+  
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
+  
+  if(bgImage){
+    // Image ko draw karte waqt "Cover" logic use kiya gaya hai
+    // Taaki image 4:5 frame me bina stretch huye perfect fit ho jaye
+    const sc = Math.max(W / bgImage.width, H / bgImage.height);
+    const drawW = bgImage.width * sc;
+    const drawH = bgImage.height * sc;
+    const offsetX = (W - drawW) / 2;
+    const offsetY = (H - drawH) / 2;
+    ctx.drawImage(bgImage, offsetX, offsetY, drawW, drawH);
+  }
+  
+  if(type==='headline'){
+    let tg=ctx.createLinearGradient(0,0,0,320*S); tg.addColorStop(0,'rgba(0,0,0,.85)'); tg.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=tg; ctx.fillRect(0,0,W,320*S);
+    
+    let bg=ctx.createLinearGradient(0,H - 600*S,0,H); 
+    bg.addColorStop(0,'rgba(0,0,0,0)'); bg.addColorStop(.45,'rgba(0,0,0,.75)'); bg.addColorStop(1,'rgba(0,0,0,.97)');
+    ctx.fillStyle=bg; ctx.fillRect(0,H - 600*S,W,600*S);
+  } else {
+    let tg=ctx.createLinearGradient(0,0,0,200*S); tg.addColorStop(0,'rgba(0,0,0,.6)'); tg.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=tg; ctx.fillRect(0,0,W,200*S);
+    
+    let bg=ctx.createLinearGradient(0,H - 200*S,0,H); bg.addColorStop(0,'rgba(0,0,0,0)'); bg.addColorStop(1,'rgba(0,0,0,.82)');
+    ctx.fillStyle=bg; ctx.fillRect(0,H - 200*S,W,200*S);
+  }
+  
+  drawLogo(ctx, 60*S, 60*S, 130*S, 4*S);
+  
+  if(type==='headline'){
+    const pad = 60*S, maxW = W - 120*S, maxH = 280*S, ratio = 1.2;
+    const sz = autoSize(ctx, headline, maxW, maxH, 76*S, 28*S, ratio);
+    const font = `bold ${sz}px 'Bebas Neue',Arial`;
+    const lines = wrapLines(ctx, headline, maxW, font);
+    const lh = sz*ratio, total = lines.length*lh;
+    let y = H - 130*S - total + sz;
+    
+    ctx.font = font; ctx.shadowColor = 'rgba(0,0,0,.95)'; ctx.shadowBlur = 18*S; ctx.shadowOffsetX = 2*S; ctx.shadowOffsetY = 2*S;
+    ctx.fillStyle = '#fff'; lines.forEach(l=>{ctx.fillText(l,pad,y);y+=lh;}); ctx.shadowColor = 'transparent';
+  }
+  
+  ctx.fillStyle='#D31122'; ctx.fillRect(60*S, H-100*S, W-120*S, 5*S);
+  ctx.shadowColor='rgba(0,0,0,.8)'; ctx.shadowBlur=10*S;
+  ctx.fillStyle='#fff'; ctx.font=`700 ${38*S}px 'Barlow Condensed',Arial`;
+  ctx.fillText('@dekoderdigital', 60*S, H-40*S); ctx.shadowColor='transparent';
+}
+
+function downloadImage(){
+  const a = document.createElement('a');
+  a.download = document.getElementById('postType').value==='headline'?'DeKoder-Cover.png':'DeKoder-Content.png';
+  a.href = canvas.toDataURL('image/png'); a.click();
+}
+
+// Init
+toggleUI();
+</script>
+</body>
+</html>
