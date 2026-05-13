@@ -3,75 +3,244 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DeKoder Studio</title>
+<title>DeKoder Studio | Live News</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#0a0a0a;--panel:#141414;--red:#D31122;--redd:#9e0c19;--white:#fff;--gray:#888;--border:#2a2a2a}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Barlow Condensed',sans-serif;background:var(--bg);color:var(--white);min-height:100vh}
-.studio-header{background:var(--panel);border-bottom:2px solid var(--red);padding:14px 24px;display:flex;align-items:center;gap:14px}
+body{font-family:'Barlow Condensed',sans-serif;background:var(--bg);color:var(--white);min-height:100vh; overflow-x: hidden;}
+
+/* Header */
+.studio-header{background:var(--panel);border-bottom:2px solid var(--red);padding:14px 24px;display:flex;align-items:center;gap:14px; position: sticky; top:0; z-index: 100;}
 .studio-header img{width:44px;height:44px;border-radius:50%;border:2px solid var(--red); object-fit: cover; background: #fff;}
 .brand{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px}
 .brand span{color:var(--red)}
 
-.content-wrapper{display:flex;flex-wrap:wrap;gap:20px;padding:20px;justify-content:center}
-.controls{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:22px;width:100%;max-width:390px}
-.section-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--red);margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:8px}
-label{display:block;margin-top:14px;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gray)}
-input[type=file],textarea,select,input[type=text]{width:100%;padding:10px 12px;margin-top:6px;background:#1e1e1e;border:1px solid var(--border);border-radius:6px;color:var(--white);font-family:'Barlow Condensed',sans-serif;font-size:15px}
-textarea{resize:vertical;height:90px}
-.btn-primary{margin-top:22px;width:100%;padding:14px;background:var(--red);color:#fff;border:none;border-radius:6px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;cursor:pointer;transition:background .2s}
-.btn-primary:hover{background:var(--redd)}
+/* Main Layout */
+.main-layout { display: grid; grid-template-columns: 350px 1fr 350px; gap: 20px; padding: 20px; height: calc(100vh - 75px); }
 
-.canvas-wrapper{width:100%;max-width:520px;border-radius:8px;box-shadow:0 0 40px rgba(211,17,34,.15);overflow:hidden;font-size:0;}
-#newsCanvas{width:100%;height:auto;display:block;}
+/* Fast News Feed Sidebar */
+.news-feed { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow-y: hidden; display: flex; flex-direction: column; }
+.filter-container { padding: 15px; border-bottom: 1px solid var(--border); background: #0f0f0f; }
+.main-tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+.tab-btn { flex: 1; padding: 10px; background: #1e1e1e; border: 1px solid var(--border); color: var(--gray); font-family: 'Bebas Neue'; font-size: 16px; cursor: pointer; border-radius: 4px; letter-spacing: 1px; transition: 0.2s;}
+.tab-btn.active { background: var(--red); border: none; color: white; }
+.topic-select { width: 100%; padding: 10px; background: #1e1e1e; border: 1px solid var(--border); color: white; border-radius: 4px; font-family: 'Barlow Condensed'; font-size: 16px; cursor: pointer; }
 
-@media(max-width:600px){.controls{max-width:100%}}
+#newsList { overflow-y: auto; height: 100%; }
+#newsList::-webkit-scrollbar { width: 6px; }
+#newsList::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.news-card { padding: 15px; border-bottom: 1px solid var(--border); cursor: pointer; transition: 0.2s; }
+.news-card:hover { background: #1e1e1e; }
+.news-card img { width: 100%; height: 140px; object-fit: cover; border-radius: 6px; margin-bottom: 10px; }
+.news-card h4 { font-size: 17px; line-height: 1.2; color: var(--white); margin-top: 5px; }
+.news-card span { font-size: 12px; color: var(--red); text-transform: uppercase; font-weight: bold; }
+
+/* Center Canvas Area */
+.canvas-container { display: flex; justify-content: center; align-items: flex-start; overflow-y: auto; }
+.canvas-wrapper{ width: 100%; max-width: 480px; border-radius: 8px; box-shadow: 0 0 40px rgba(211,17,34,.15); overflow: hidden; font-size: 0; }
+#newsCanvas{ width: 100%; height: auto; display: block; }
+
+/* Post Settings Sidebar */
+.controls{ background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:22px; overflow-y: auto; height: fit-content;}
+.section-title{ font-family:'Bebas Neue',sans-serif; font-size:18px; letter-spacing:2px; color:var(--red); margin-bottom:16px; border-bottom:1px solid var(--border); padding-bottom:8px; display: flex; justify-content: space-between; align-items: center;}
+label{ display:block; margin-top:14px; font-size:13px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--gray); }
+input[type=file],textarea,select{ width:100%; padding:10px 12px; margin-top:6px; background:#1e1e1e; border:1px solid var(--border); border-radius:6px; color:var(--white); font-family:'Barlow Condensed',sans-serif; font-size:15px; }
+textarea{ resize:vertical; height:120px; font-size: 16px; }
+.btn-primary{ margin-top:22px; width:100%; padding:14px; background:var(--red); color:#fff; border:none; border-radius:6px; font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:2px; cursor:pointer; transition:background .2s; }
+.btn-primary:hover{ background:var(--redd); }
+.btn-refresh { background: transparent; border: 1px solid var(--border); color: var(--white); padding: 4px 10px; border-radius: 4px; cursor: pointer; font-family: 'Barlow Condensed'; font-weight: bold; font-size: 13px; transition: 0.2s;}
+.btn-refresh:hover { background: #2a2a2a; }
+
+@media(max-width:1024px){ .main-layout { grid-template-columns: 1fr; height: auto; } .news-feed { order: 3; height: 600px; } }
 </style>
 </head>
 <body>
 
 <header class="studio-header">
-  <img id="hLogo" src="image/logo.png" alt="DK" onerror="this.src='';this.style.display='none';">
+  <img id="hLogo" src="image/logo.png" alt="DK" onerror="this.style.display='none';">
   <div class="brand">De<span>K</span>oder <span style="color:#444;font-size:16px;letter-spacing:1px">STUDIO</span></div>
 </header>
 
-<div class="content-wrapper">
-  <div class="controls">
+<div class="main-layout">
+  
+  <!-- 1. LIVE FAST NEWS FEED -->
+  <aside class="news-feed" id="fastNews">
+    <div class="section-title" style="padding: 15px; margin: 0; border-bottom: none;">
+      <span>Fast News <span style="color:var(--white)">Live</span></span>
+      <button class="btn-refresh" onclick="fetchNews()">🔄 REFRESH</button>
+    </div>
+    
+    <div class="filter-container">
+      <div class="main-tabs">
+        <button class="tab-btn active" id="btn-india" onclick="setRegion('india')">INDIA</button>
+        <button class="tab-btn" id="btn-world" onclick="setRegion('world')">WORLD</button>
+      </div>
+      <select id="topicSelect" class="topic-select" onchange="fetchNews()"></select>
+    </div>
+
+    <div id="newsList">
+      <p style="padding: 20px; color: var(--gray); text-align: center;">Loading fresh news...</p>
+    </div>
+  </aside>
+
+  <!-- 2. CANVAS PREVIEW -->
+  <main class="canvas-container">
+    <div class="canvas-wrapper"><canvas id="newsCanvas" width="1080" height="1350"></canvas></div>
+  </main>
+
+  <!-- 3. POST SETTINGS -->
+  <aside class="controls">
     <div class="section-title">Post Settings</div>
+    
     <label>Post Type</label>
     <select id="postType" onchange="toggleUI()">
       <option value="headline">Cover (With Headline)</option>
       <option value="imageOnly">Content (Logo & Socials Only)</option>
     </select>
-    <label>Background Image</label>
+    
+    <label>Manual Background Upload</label>
     <input type="file" id="imageUpload" accept="image/*" onchange="handleImageUpload(event)">
+    
     <div id="headlineBlock">
       <label>Headline Text</label>
-      <textarea id="headline" oninput="drawCanvas()">Yahan apni breaking news ya headline type karein...</textarea>
+      <textarea id="headline" oninput="drawCanvas()">Yahan apni breaking news ya headline type karein... (Or tap a news story on the left)</textarea>
     </div>
+    
     <button class="btn-primary" onclick="downloadImage()">⬇ Download Post</button>
-  </div>
-  <div style="display:flex;align-items:flex-start;justify-content:center;width:100%;max-width:520px">
-    <!-- Canvas is STRICTLY fixed to 1080x1350 (4:5 Portrait) -->
-    <div class="canvas-wrapper"><canvas id="newsCanvas" width="1080" height="1350"></canvas></div>
-  </div>
+  </aside>
+
 </div>
 
 <script>
-// ── LOGO ──────────────────────────────────
-const LOGO = "image/logo.png";
+// ─── 1. LOGO & CANVAS SETUP ──────────────────────────────────────────
+const LOGO_SRC = "image/logo.png";
 const logoImg = new Image();
-logoImg.src = LOGO;
-
+logoImg.src = LOGO_SRC;
 logoImg.onerror = () => { drawCanvas(); };
 logoImg.onload = () => { drawCanvas(); };
 
-// ── POST ──────────────────────────────────
 const canvas = document.getElementById('newsCanvas');
 const ctx = canvas.getContext('2d');
 let bgImage = null;
 
+// ─── 2. LIVE NEWS LOGIC (FREE & KEYLESS) ─────────────────────────────
+const categories = {
+  india: [
+    'Top Headlines', 'Exam Updates & Schedules', 'Paper Leaks & Education', 
+    'Crime, Law & Order', 'Good News & Inspiring', 'PM Modi & Government', 
+    'Rahul Gandhi & Opposition', 'Politics & State Elections', 'Diplomacy & Foreign Affairs', 
+    'Stock Market & Economy', 'Tech, Crypto & Startups', 'Corruption & Scams', 
+    'Infrastructure & Railways', 'Harassment & Social Issues', 'Sports & Cricket', 'Bollywood & Entertainment'
+  ],
+  world: [
+    'Top Headlines', 'Global Diplomacy & Relations', 'Global Market & Crypto', 
+    'Tech & Artificial Intelligence', 'Conflicts, Wars & Geopolitics', 'Space & Science', 
+    'Global Sports', 'Environment & Climate', 'US Politics', 'International Crime'
+  ]
+};
+
+let currentRegion = 'india';
+
+function setRegion(reg) {
+  currentRegion = reg;
+  document.getElementById('btn-india').classList.toggle('active', reg === 'india');
+  document.getElementById('btn-world').classList.toggle('active', reg === 'world');
+  populateDropdown();
+  fetchNews();
+}
+
+function populateDropdown() {
+  const select = document.getElementById('topicSelect');
+  select.innerHTML = '';
+  categories[currentRegion].forEach(topic => {
+    const opt = document.createElement('option');
+    opt.value = topic === 'Top Headlines' ? '' : topic;
+    opt.innerText = topic;
+    select.appendChild(opt);
+  });
+}
+
+async function fetchNews() {
+  const list = document.getElementById('newsList');
+  const select = document.getElementById('topicSelect');
+  const topicQuery = select.value; 
+  const topicName = select.options[select.selectedIndex].text;
+  
+  list.innerHTML = `<p style="padding: 20px; color: var(--gray); text-align: center;">Scanning live sources for<br><b style="color:var(--white); font-size:16px;">${topicName}</b>...</p>`;
+  
+  // Build Google News RSS URL
+  let rssUrl = '';
+  if (currentRegion === 'india') {
+      if (topicQuery === '') rssUrl = 'https://news.google.com/rss?hl=en-IN&gl=IN&ceid=IN:en';
+      else rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(topicQuery + ' India')}&hl=en-IN&gl=IN&ceid=IN:en`;
+  } else {
+      if (topicQuery === '') rssUrl = 'https://news.google.com/rss/headlines/section/topic/WORLD?hl=en-US&gl=US&ceid=US:en';
+      else rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(topicQuery)}&hl=en-US&gl=US&ceid=US:en`;
+  }
+
+  // Use RSS2JSON (Free service, no key needed for basic usage)
+  const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+
+  try {
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+    list.innerHTML = '';
+    
+    if(data.status !== 'ok' || !data.items || data.items.length === 0) {
+      list.innerHTML = '<p style="padding:20px; text-align:center;">No recent news found.</p>';
+      return;
+    }
+
+    data.items.forEach(art => {
+      // Clean title (Google News appends " - Publisher Name" at the end)
+      let cleanTitle = art.title;
+      let sourceName = "News Update";
+      if (cleanTitle.lastIndexOf(" - ") !== -1) {
+          sourceName = cleanTitle.substring(cleanTitle.lastIndexOf(" - ") + 3);
+          cleanTitle = cleanTitle.substring(0, cleanTitle.lastIndexOf(" - "));
+      }
+
+      // Extract image from RSS feed (Thumbnail, Enclosure, or regex from HTML content)
+      let imgUrl = art.thumbnail || (art.enclosure && art.enclosure.link) || '';
+      if (!imgUrl && art.description) {
+          const match = art.description.match(/<img[^>]+src="([^">]+)"/);
+          if (match) imgUrl = match[1];
+      }
+      
+      // Fallback image if the article has no picture at all
+      if (!imgUrl) imgUrl = 'https://images.unsplash.com/photo-1504711432869-efd597cdd045?auto=format&fit=crop&w=600&q=80';
+
+      const card = document.createElement('div');
+      card.className = 'news-card';
+      card.innerHTML = `
+        <img src="${imgUrl}" alt="thumb" onerror="this.src='https://images.unsplash.com/photo-1585829365295-ab7cd400c167?auto=format&fit=crop&w=600&q=80'">
+        <span>${sourceName}</span>
+        <h4>${cleanTitle}</h4>
+      `;
+      
+      card.onclick = () => selectNews(cleanTitle, imgUrl);
+      list.appendChild(card);
+    });
+  } catch (e) {
+    list.innerHTML = '<p style="padding: 20px; color: var(--red); text-align:center;">Error connecting to live feeds.</p>';
+  }
+}
+
+function selectNews(title, imgUrl) {
+  document.getElementById('headline').value = title;
+  
+  // Use a CORS proxy to prevent the Canvas from getting "Tainted" by external news images.
+  // This ensures the "Download" button still works perfectly.
+  const proxiedUrl = `https://corsproxy.io/?${encodeURIComponent(imgUrl)}`;
+  
+  const newImg = new Image();
+  newImg.crossOrigin = "Anonymous"; 
+  newImg.onload = () => { bgImage = newImg; drawCanvas(); };
+  newImg.src = proxiedUrl;
+}
+
+// ─── 3. CANVAS DRAWING LOGIC ─────────────────────────────────────────
 function toggleUI(){
   const t = document.getElementById('postType').value;
   document.getElementById('headlineBlock').style.display = t==='imageOnly'?'none':'block';
@@ -79,16 +248,12 @@ function toggleUI(){
 }
 
 function handleImageUpload(e){
-  const f = e.target.files[0]; 
-  if(!f) return;
+  const f = e.target.files[0]; if(!f) return;
   const r = new FileReader();
   r.onload = ev => { 
-    bgImage = new Image(); 
-    bgImage.onload = () => {
-      // Canvas resolution is NOT changed here. It stays 1080x1350.
-      drawCanvas(); 
-    };
-    bgImage.src = ev.target.result; 
+    const tempImg = new Image(); 
+    tempImg.onload = () => { bgImage = tempImg; drawCanvas(); };
+    tempImg.src = ev.target.result; 
   };
   r.readAsDataURL(f);
 }
@@ -128,14 +293,13 @@ function drawLogo(c, x, y, size, strokeW=4){
 function drawCanvas(){
   const type = document.getElementById('postType').value;
   const headline = document.getElementById('headline').value;
-  const W = canvas.width, H = canvas.height;
-  const S = W / 1080; // Scale factor relative to 1080 width baseline
+  const W = canvas.width, H = canvas.height; // Fixed 1080x1350
+  const S = W / 1080; // Scale multiplier
   
   ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
   
-  if(bgImage){
-    // Image ko draw karte waqt "Cover" logic use kiya gaya hai
-    // Taaki image 4:5 frame me bina stretch huye perfect fit ho jaye
+  // Background Image Fill (Cover style)
+  if(bgImage && bgImage.src){
     const sc = Math.max(W / bgImage.width, H / bgImage.height);
     const drawW = bgImage.width * sc;
     const drawH = bgImage.height * sc;
@@ -144,37 +308,41 @@ function drawCanvas(){
     ctx.drawImage(bgImage, offsetX, offsetY, drawW, drawH);
   }
   
+  // Overlays / Gradients
   if(type==='headline'){
     let tg=ctx.createLinearGradient(0,0,0,320*S); tg.addColorStop(0,'rgba(0,0,0,.85)'); tg.addColorStop(1,'rgba(0,0,0,0)');
     ctx.fillStyle=tg; ctx.fillRect(0,0,W,320*S);
     
-    let bg=ctx.createLinearGradient(0,H - 600*S,0,H); 
-    bg.addColorStop(0,'rgba(0,0,0,0)'); bg.addColorStop(.45,'rgba(0,0,0,.75)'); bg.addColorStop(1,'rgba(0,0,0,.97)');
-    ctx.fillStyle=bg; ctx.fillRect(0,H - 600*S,W,600*S);
+    let bg=ctx.createLinearGradient(0,H - 650*S,0,H); 
+    bg.addColorStop(0,'rgba(0,0,0,0)'); bg.addColorStop(.45,'rgba(0,0,0,.85)'); bg.addColorStop(1,'rgba(0,0,0,.98)');
+    ctx.fillStyle=bg; ctx.fillRect(0,H - 650*S,W,650*S);
   } else {
     let tg=ctx.createLinearGradient(0,0,0,200*S); tg.addColorStop(0,'rgba(0,0,0,.6)'); tg.addColorStop(1,'rgba(0,0,0,0)');
     ctx.fillStyle=tg; ctx.fillRect(0,0,W,200*S);
     
-    let bg=ctx.createLinearGradient(0,H - 200*S,0,H); bg.addColorStop(0,'rgba(0,0,0,0)'); bg.addColorStop(1,'rgba(0,0,0,.82)');
-    ctx.fillStyle=bg; ctx.fillRect(0,H - 200*S,W,200*S);
+    let bg=ctx.createLinearGradient(0,H - 250*S,0,H); bg.addColorStop(0,'rgba(0,0,0,0)'); bg.addColorStop(1,'rgba(0,0,0,.85)');
+    ctx.fillStyle=bg; ctx.fillRect(0,H - 250*S,W,250*S);
   }
   
+  // Logo
   drawLogo(ctx, 60*S, 60*S, 130*S, 4*S);
   
+  // Headline Text
   if(type==='headline'){
-    const pad = 60*S, maxW = W - 120*S, maxH = 280*S, ratio = 1.2;
-    const sz = autoSize(ctx, headline, maxW, maxH, 76*S, 28*S, ratio);
+    const pad = 60*S, maxW = W - 120*S, maxH = 320*S, ratio = 1.15;
+    const sz = autoSize(ctx, headline, maxW, maxH, 82*S, 32*S, ratio);
     const font = `bold ${sz}px 'Bebas Neue',Arial`;
     const lines = wrapLines(ctx, headline, maxW, font);
     const lh = sz*ratio, total = lines.length*lh;
-    let y = H - 130*S - total + sz;
+    let y = H - 140*S - total + sz;
     
-    ctx.font = font; ctx.shadowColor = 'rgba(0,0,0,.95)'; ctx.shadowBlur = 18*S; ctx.shadowOffsetX = 2*S; ctx.shadowOffsetY = 2*S;
-    ctx.fillStyle = '#fff'; lines.forEach(l=>{ctx.fillText(l,pad,y);y+=lh;}); ctx.shadowColor = 'transparent';
+    ctx.font = font; ctx.shadowColor = 'rgba(0,0,0,1)'; ctx.shadowBlur = 20*S; ctx.shadowOffsetX = 3*S; ctx.shadowOffsetY = 3*S;
+    ctx.fillStyle = '#fff'; lines.forEach(l=>{ctx.fillText(l.toUpperCase(),pad,y);y+=lh;}); ctx.shadowColor = 'transparent';
   }
   
+  // Bottom Branding Bar
   ctx.fillStyle='#D31122'; ctx.fillRect(60*S, H-100*S, W-120*S, 5*S);
-  ctx.shadowColor='rgba(0,0,0,.8)'; ctx.shadowBlur=10*S;
+  ctx.shadowColor='rgba(0,0,0,.9)'; ctx.shadowBlur=12*S;
   ctx.fillStyle='#fff'; ctx.font=`700 ${38*S}px 'Barlow Condensed',Arial`;
   ctx.fillText('@dekoderdigital', 60*S, H-40*S); ctx.shadowColor='transparent';
 }
@@ -185,8 +353,10 @@ function downloadImage(){
   a.href = canvas.toDataURL('image/png'); a.click();
 }
 
-// Init
+// ─── INITIALIZATION ──────────────────────────────────────────────────
+setRegion('india');
 toggleUI();
 </script>
+
 </body>
 </html>
